@@ -20,7 +20,7 @@ class Api::V1::AnnouncementsController < Api::BaseController
   def set_announcements
     @announcements = Announcement.published
     @announcements = @announcements.without_muted(current_account) if user_signed_in?
-    @announcements = @announcements.order(starts_at: :asc)
+    @announcements = @announcements.chronological
   end
 
   def set_announcement

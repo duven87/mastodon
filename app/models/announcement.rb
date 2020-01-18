@@ -21,12 +21,17 @@ class Announcement < ApplicationRecord
   scope :unpublished, -> { where(published: false) }
   scope :published, -> { where(published: true) }
   scope :without_muted, ->(account) { joins("LEFT OUTER JOIN announcement_mutes ON announcement_mutes.announcement_id = announcements.id AND announcement_mutes.account_id = #{account.id}").where('announcement_mutes.id IS NULL') }
+  scope :chronological, -> { order(Arel.sql('COALESCE(starts_at, scheduled_at, created_at) ASC')) }
 
   has_many :announcement_mutes, dependent: :destroy
   has_many :announcement_reactions, dependent: :destroy
 
   before_validation :set_starts_at, on: :create
   before_validation :set_ends_at, on: :create
+
+  def time_range?
+    starts_at.present? && ends_at.present?
+  end
 
   def mentions
     @mentions ||= Account.from_text(text)
